@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blender Web Studio - v2.0</title>
+    <title>Blender Web Studio - v2.1</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Librerías de Three.js y Controladores Profesionales (Orbit y Transform) -->
+    <!-- Three.js y Controladores Profesionales -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
-    <!-- Cargadores 3D Universales (GLTF, OBJ) -->
+    <!-- Cargadores 3D Universales (GLTF, OBJ, FBX) y Librería JSZip para Steam Workshop -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
     <div id="viewport-container">
-        <!-- Indicador de Estado y Versión -->
-        <div id="info-overlay">Blender Web Studio v2.0 | Estable & Fluido (60 FPS)</div>
+        <div id="info-overlay">Blender Web Studio v2.1 | Estable & Modular</div>
         
-        <!-- Barra Lateral de Herramientas y Módulos -->
+        <!-- Panel Lateral de Herramientas (Con scroll propio para que nunca se oculte nada) -->
         <div id="toolbar">
             <div class="section-title">📦 Geometrías Base</div>
             <div class="button-group">
@@ -31,19 +32,19 @@
 
             <hr class="divider">
 
-            <div class="section-title">📂 Importar Modelo (GLB/OBJ)</div>
+            <div class="section-title">📂 Importar (GLB, OBJ, FBX, ZIP Workshop)</div>
             <div class="button-group">
-                <input type="file" id="file-uploader" accept=".glb, .gltf, .obj" style="display: none;">
-                <button id="btn-upload" style="background-color: #2b5b84;">Cargar Archivo...</button>
+                <input type="file" id="file-uploader" accept=".glb, .gltf, .obj, .fbx, .zip" style="display: none;">
+                <button id="btn-upload" style="background-color: #2b5b84;">Cargar Archivo / ZIP...</button>
             </div>
 
             <hr class="divider">
 
-            <div class="section-title">🔄 Herramientas de Transformación</div>
+            <div class="section-title">🔄 Transformación</div>
             <div class="button-group">
-                <button id="mode-translate" class="active-mode">Mover (G)</button>
-                <button id="mode-rotate">Rotar (R)</button>
-                <button id="mode-scale">Escalar (S)</button>
+                <button id="mode-translate" class="active-mode">Mover</button>
+                <button id="mode-rotate">Rotar</button>
+                <button id="mode-scale">Escalar</button>
             </div>
 
             <hr class="divider">
@@ -58,8 +59,8 @@
 
             <div class="section-title">💡 Iluminación y Cámara</div>
             <div class="button-group">
-                <button id="btn-add-light">Agregar Luz Puntual</button>
-                <button id="btn-switch-camera">Cambiar Cámara (Activa)</button>
+                <button id="btn-add-light">Agregar Luz</button>
+                <button id="btn-switch-camera">Cambiar Cámara</button>
             </div>
 
             <hr class="divider">
