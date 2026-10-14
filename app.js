@@ -259,7 +259,17 @@ function animate() {
 }
 animate();
 
-window.addEventListener('resize', () => {
+// Luces y Cuadrícula (Con mayor iluminación para que no se vea oscuro)
+scene.add(new THREE.AmbientLight(0xffffff, 1.2)); // Luz ambiental más potente
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+dirLight.position.set(10, 20, 15);
+scene.add(dirLight);
+
+// Luz de relleno lateral para evitar sombras negras absolutas
+const fillLight = new THREE.DirectionalLight(0x90b0ff, 0.8);
+fillLight.position.set(-10, -10, -10);
+scene.add(fillLight);window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
