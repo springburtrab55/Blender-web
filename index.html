@@ -3,28 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blender Web Studio</title>
+    <title>Blender Web Studio - v2.1</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Three.js y OrbitControls -->
+    
+    <!-- Three.js y Controladores Profesionales -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+    <!-- Cargadores 3D Universales (GLTF, OBJ, FBX) y Librería JSZip para Steam Workshop -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
     <div id="viewport-container">
-        <div id="info-overlay">Blender Web | Modo Edición</div>
+        <div id="info-overlay">Blender Web Studio v2.1 | Estable & Modular</div>
         
-        <!-- Barra de Herramientas Flotante -->
+        <!-- Panel Lateral de Herramientas (Con scroll propio para que nunca se oculte nada) -->
         <div id="toolbar">
-            <h3>Crear</h3>
-            <button id="btn-cube">Cubo</button>
-            <button id="btn-sphere">Esfera</button>
-            <button id="btn-cylinder">Cilindro</button>
-            <hr style="border-color: #444; margin: 8px 0;">
-            <h3>Color</h3>
-            <input type="color" id="color-picker" value="#db7100">
-            <hr style="border-color: #444; margin: 8px 0;">
-            <button id="btn-delete" style="background-color: #a83232; color: white;">Borrar Objeto</button>
+            <div class="section-title">📦 Geometrías Base</div>
+            <div class="button-group">
+                <button id="btn-cube">Cubo</button>
+                <button id="btn-sphere">Esfera</button>
+                <button id="btn-cylinder">Cilindro</button>
+            </div>
+
+            <hr class="divider">
+
+            <div class="section-title">📂 Importar (GLB, OBJ, FBX, ZIP Workshop)</div>
+            <div class="button-group">
+                <input type="file" id="file-uploader" accept=".glb, .gltf, .obj, .fbx, .zip" style="display: none;">
+                <button id="btn-upload" style="background-color: #2b5b84;">Cargar Archivo / ZIP...</button>
+            </div>
+
+            <hr class="divider">
+
+            <div class="section-title">🔄 Transformación</div>
+            <div class="button-group">
+                <button id="mode-translate" class="active-mode">Mover</button>
+                <button id="mode-rotate">Rotar</button>
+                <button id="mode-scale">Escalar</button>
+            </div>
+
+            <hr class="divider">
+
+            <div class="section-title">🎨 Material y Color</div>
+            <div class="color-row">
+                <label>Color Base:</label>
+                <input type="color" id="color-picker" value="#db7100">
+            </div>
+
+            <hr class="divider">
+
+            <div class="section-title">💡 Iluminación y Cámara</div>
+            <div class="button-group">
+                <button id="btn-add-light">Agregar Luz</button>
+                <button id="btn-switch-camera">Cambiar Cámara</button>
+            </div>
+
+            <hr class="divider">
+
+            <button id="btn-delete" class="danger-btn">Eliminar Objeto Seleccionado</button>
         </div>
     </div>
 
