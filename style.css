@@ -32,7 +32,7 @@ body, html {
   border: 1px solid #333;
 }
 
-/* Panel Flotante de Herramientas Estilo Blender */
+/* Panel Flotante con altura controlada y barra de desplazamiento propia */
 #toolbar {
   position: absolute;
   top: 45px;
@@ -41,8 +41,8 @@ body, html {
   border: 1px solid #444;
   padding: 12px;
   border-radius: 8px;
-  width: 240px;
-  max-height: 90vh;
+  width: 250px;
+  height: calc(100vh - 60px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -57,7 +57,7 @@ body, html {
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .button-group {
@@ -94,7 +94,7 @@ body, html {
 .divider {
   border: none;
   border-top: 1px solid #3a3a3a;
-  margin: 4px 0;
+  margin: 6px 0;
 }
 
 .color-row {
@@ -118,6 +118,8 @@ body, html {
   background-color: #8a2b2b !important;
   color: white !important;
   border-color: #a83a3a !important;
+  margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 .danger-btn:hover {
