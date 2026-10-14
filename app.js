@@ -1,200 +1,197 @@
 const container = document.getElementById('viewport-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x222222);
+scene.background = new THREE.Color(0x1e1e1e);
 
-const mainCamera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-mainCamera.position.set(6, 6, 8);
-
-const altCamera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-altCamera.position.set(0, 10, 12);
-altCamera.lookAt(0, 0, 0);
-
-let activeCamera = mainCamera;
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(6, 6, 8);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 container.appendChild(renderer.domElement);
 
-const orbitControls = new THREE.OrbitControls(activeCamera, renderer.domElement);
+const orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
 orbitControls.enableDamping = true;
 orbitControls.dampingFactor = 0.05;
 
-const transformControls = new THREE.TransformControls(activeCamera, renderer.domElement);
+const transformControls = new THREE.TransformControls(camera, renderer.domElement);
 scene.add(transformControls);
 
 transformControls.addEventListener('dragging-changed', (event) => {
   orbitControls.enabled = !event.value;
 });
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
-
+// Luces y Cuadrícula
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(10, 20, 15);
 scene.add(dirLight);
 
-const gridHelper = new THREE.GridHelper(25, 25, 0x555555, 0x333333);
+const gridHelper = new THREE.GridHelper(25, 25, 0x444444, 0x2c2c2c);
 gridHelper.position.y = -0.01;
 scene.add(gridHelper);
 
 let objectsInScene = [];
 let selectedObject = null;
 let currentMaterialColor = 0xdb7100;
+let skeletonHelpers = [];
 
-// Sistema de selección con indicador visual en consola/interfaz
-function selectObject(mesh) {
-  selectedObject = mesh;
-  if (mesh) {
-    transformControls.attach(mesh);
-    document.getElementById('info-overlay').innerText = "Objeto seleccionado y listo para transformar";
+function selectObject(obj) {
+  selectedObject = obj;
+  if (obj) {
+    transformControls.attach(obj);
+    document.getElementById('info-overlay').innerText = `Seleccionado: ${obj.name || 'Objeto 3D'}`;
   } else {
     transformControls.detach();
+    document.getElementById('info-overlay').innerText = "Ningún objeto seleccionado";
   }
 }
 
-function registerAndSelectObject(mesh) {
+function registerObject(mesh) {
   scene.add(mesh);
   objectsInScene.push(mesh);
   selectObject(mesh);
 }
 
-// Permitir hacer clic directo en los objetos del visor para seleccionarlos
+// Raycaster para hacer clic directo en piezas o sub-mallas del modelo
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
 window.addEventListener('pointerdown', (event) => {
-  // Evitar que seleccione si hace clic en la barra lateral
-  if (event.clientX < 270) return;
+  if (event.clientX < 260) return; // Ignorar clics en la barra lateral
 
   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-  raycaster.setFromCamera(mouse, activeCamera);
+  raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(objectsInScene, true);
 
   if (intersects.length > 0) {
-    let target = intersects[0].object;
-    // Subir hasta la raíz del objeto si es un modelo compuesto
-    while (target.parent && target.parent !== scene && !objectsInScene.includes(target)) {
-      if (objectsInScene.includes(target.parent)) {
-        target = target.parent;
-        break;
-      }
-      target = target.parent;
-    }
-    selectObject(target);
+    selectObject(intersects[0].object);
   }
 });
 
-// Borrado seguro optimizado (elimina cubos y modelos importados)
-document.getElementById('btn-delete').addEventListener('click', () => {
-  if (!selectedObject) {
-    alert("Selecciona un objeto primero.");
-    return;
-  }
-
-  transformControls.detach();
-  scene.remove(selectedObject);
-  
-  selectedObject.traverse((child) => {
-    if (child.geometry) child.geometry.dispose();
-    if (child.material) {
-      if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-      else child.material.dispose();
-    }
-  });
-
-  objectsInScene = objectsInScene.filter(obj => obj !== selectedObject);
-  selectedObject = null;
-  
-  if (objectsInScene.length > 0) {
-    selectObject(objectsInScene[objectsInScene.length - 1]);
-  } else {
-    document.getElementById('info-overlay').innerText = "Escena vacía";
-  }
-});
-
-// Cubo Inicial
-const initialMesh = new THREE.Mesh(
+// Cubo Inicial por defecto
+const initMesh = new THREE.Mesh(
   new THREE.BoxGeometry(1.5, 1.5, 1.5),
   new THREE.MeshStandardMaterial({ color: currentMaterialColor, roughness: 0.3 })
 );
-initialMesh.position.y = 0.75;
-registerAndSelectObject(initialMesh);
+initMesh.position.y = 0.75;
+registerObject(initMesh);
 
-// Botones de Geometrías
+// --- CONTROLES DE LA INTERFAZ ---
+
+// Geometrías Base
 document.getElementById('btn-cube').addEventListener('click', () => {
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1.5, 1.5, 1.5),
-    new THREE.MeshStandardMaterial({ color: currentMaterialColor, roughness: 0.3 })
-  );
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({ color: currentMaterialColor }));
   mesh.position.set((Math.random() - 0.5) * 4, 1, (Math.random() - 0.5) * 4);
-  registerAndSelectObject(mesh);
+  registerObject(mesh);
 });
 
 document.getElementById('btn-sphere').addEventListener('click', () => {
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(1, 32, 32),
-    new THREE.MeshStandardMaterial({ color: currentMaterialColor, roughness: 0.3 })
-  );
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial({ color: currentMaterialColor }));
   mesh.position.set((Math.random() - 0.5) * 4, 1, (Math.random() - 0.5) * 4);
-  registerAndSelectObject(mesh);
+  registerObject(mesh);
 });
 
 document.getElementById('btn-cylinder').addEventListener('click', () => {
-  const mesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.8, 0.8, 1.5, 32),
-    new THREE.MeshStandardMaterial({ color: currentMaterialColor, roughness: 0.3 })
-  );
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 1.5, 32), new THREE.MeshStandardMaterial({ color: currentMaterialColor }));
   mesh.position.set((Math.random() - 0.5) * 4, 1, (Math.random() - 0.5) * 4);
-  registerAndSelectObject(mesh);
+  registerObject(mesh);
 });
 
-// Gizmos de Transformación
+// Modos de Transformación
 const modeTranslate = document.getElementById('mode-translate');
 const modeRotate = document.getElementById('mode-rotate');
 const modeScale = document.getElementById('mode-scale');
 
-function updateModeButtons(activeBtn) {
+function updateModeBtn(btn) {
   [modeTranslate, modeRotate, modeScale].forEach(b => b.classList.remove('active-mode'));
-  activeBtn.classList.add('active-mode');
+  btn.classList.add('active-mode');
 }
 
-modeTranslate.addEventListener('click', () => { transformControls.setMode('translate'); updateModeButtons(modeTranslate); });
-modeRotate.addEventListener('click', () => { transformControls.setMode('rotate'); updateModeButtons(modeRotate); });
-modeScale.addEventListener('click', () => { transformControls.setMode('scale'); updateModeButtons(modeScale); });
+modeTranslate.addEventListener('click', () => { transformControls.setMode('translate'); updateModeBtn(modeTranslate); });
+modeRotate.addEventListener('click', () => { transformControls.setMode('rotate'); updateModeBtn(modeRotate); });
+modeScale.addEventListener('click', () => { transformControls.setMode('scale'); updateModeBtn(modeScale); });
 
-// Color
-document.getElementById('color-picker').addEventListener('input', (event) => {
-  currentMaterialColor = event.target.value;
-  if (selectedObject) {
-    selectedObject.traverse((child) => {
-      if (child.isMesh && child.material) child.material.color.set(currentMaterialColor);
-    });
+// Selector de Color
+document.getElementById('color-picker').addEventListener('input', (e) => {
+  currentMaterialColor = e.target.value;
+  if (selectedObject && selectedObject.material) {
+    if (Array.isArray(selectedObject.material)) {
+      selectedObject.material.forEach(m => m.color.set(currentMaterialColor));
+    } else {
+      selectedObject.material.color.set(currentMaterialColor);
+    }
   }
 });
 
-// Luces y Cámaras
-document.getElementById('btn-add-light').addEventListener('click', () => {
-  const pointLight = new THREE.PointLight(0xffaa00, 1.5, 10);
-  pointLight.position.set((Math.random() - 0.5) * 5, 3, (Math.random() - 0.5) * 5);
-  scene.add(pointLight);
-  const lightSphere = new THREE.Mesh(
-    new THREE.SphereGeometry(0.15, 16, 16),
-    new THREE.MeshBasicMaterial({ color: 0xffaa00 })
-  );
-  lightSphere.position.copy(pointLight.position);
-  registerAndSelectObject(lightSphere);
+// Inspeccionar Jerarquía / Contenido en Consola
+document.getElementById('btn-inspect-hierarchy').addEventListener('click', () => {
+  if (!selectedObject) {
+    alert("Selecciona un modelo primero.");
+    return;
+  }
+  console.log("=== Estructura del Modelo Seleccionado ===");
+  console.log(selectedObject);
+  let count = 0;
+  selectedObject.traverse(child => count++);
+  alert(`El objeto seleccionado contiene ${count} sub-piezas/nodos. Revisa la consola (F12) para ver los detalles.`);
 });
 
-document.getElementById('btn-switch-camera').addEventListener('click', () => {
-  activeCamera = (activeCamera === mainCamera) ? altCamera : mainCamera;
-  orbitControls.object = activeCamera;
-  transformControls.camera = activeCamera;
+// Cargar Textura de Imagen
+const textureUploader = document.getElementById('texture-uploader');
+document.getElementById('btn-load-texture').addEventListener('click', () => textureUploader.click());
+
+textureUploader.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file || !selectedObject) return;
+
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(event.target.result, (texture) => {
+      if (selectedObject.material) {
+        selectedObject.material.map = texture;
+        selectedObject.material.needsUpdate = true;
+        alert("¡Textura aplicada con éxito!");
+      }
+    });
+  };
+  reader.readAsDataURL(file);
 });
 
-// --- IMPORTADOR UNIVERSAL + SOPORTE DE ARCHIVOS ZIP (STEAM WORKSHOP) ---
+// Agregar Hueso / Esqueleto Básico de Prueba
+document.getElementById('btn-add-bone').addEventListener('click', () => {
+  const bone1 = new THREE.Bone();
+  const bone2 = new THREE.Bone();
+  bone1.add(bone2);
+  bone2.position.y = 2;
+
+  const skeleton = new THREE.Skeleton([bone1, bone2]);
+  const skeletonHelper = new THREE.SkeletonHelper(bone1);
+  scene.add(bone1);
+  scene.add(skeletonHelper);
+  skeletonHelpers.push(skeletonHelper);
+
+  selectObject(bone1);
+  alert("Esqueleto base de 2 huesos creado en la escena.");
+});
+
+document.getElementById('btn-toggle-skeleton').addEventListener('click', () => {
+  skeletonHelpers.forEach(sh => sh.visible = !sh.visible);
+});
+
+// Botón Borrar
+document.getElementById('btn-delete').addEventListener('click', () => {
+  if (!selectedObject) return;
+  transformControls.detach();
+  scene.remove(selectedObject);
+  objectsInScene = objectsInScene.filter(o => o !== selectedObject);
+  selectObject(null);
+});
+
+// --- IMPORTADOR UNIVERSAL (GLB, GLTF, OBJ, FBX, ZIP) ---
 const fileUploader = document.getElementById('file-uploader');
 document.getElementById('btn-upload').addEventListener('click', () => fileUploader.click());
 
@@ -208,74 +205,62 @@ fileUploader.addEventListener('change', async (e) => {
     try {
       const zip = new JSZip();
       const zipContent = await zip.loadAsync(file);
-      let modelFileKey = null;
       let modelData = null;
+      let ext = '';
 
-      // Buscar archivos compatibles dentro del ZIP del Workshop
-      for (const relativePath in zipContent.files) {
-        const lowerPath = relativePath.toLowerCase();
-        if (lowerPath.endsWith('.glb') || lowerPath.endsWith('.gltf') || lowerPath.endsWith('.obj') || lowerPath.endsWith('.fbx')) {
-          modelFileKey = relativePath;
-          modelData = await zipContent.files[relativePath].async('arraybuffer');
+      for (const path in zipContent.files) {
+        const lower = path.toLowerCase();
+        if (lower.endsWith('.glb') || lower.endsWith('.gltf') || lower.endsWith('.obj') || lower.endsWith('.fbx')) {
+          ext = lower.split('.').pop();
+          modelData = await zipContent.files[path].async(ext === 'obj' ? 'string' : 'arraybuffer');
           break;
         }
       }
-
-      if (!modelFileKey) {
-        alert("No se encontró ningún archivo 3D compatible (.glb, .obj, .fbx) dentro del archivo ZIP.");
+      if (!modelData) {
+        alert("No se encontró ningún archivo 3D compatible dentro del ZIP.");
         return;
       }
-
-      const fileExtension = modelFileKey.split('.').pop().toLowerCase();
-      processLoadedModelData(modelData, fileExtension, modelFileKey);
+      parseModelData(modelData, ext);
     } catch (err) {
       console.error(err);
-      alert("Error al descomprimir el archivo ZIP de Steam Workshop.");
+      alert("Error al leer el archivo ZIP.");
     }
   } else {
     const reader = new FileReader();
     const ext = fileName.split('.').pop();
     if (ext === 'obj') {
       reader.readAsText(file);
-      reader.onload = (event) => processLoadedModelData(event.target.result, 'obj', file.name);
+      reader.onload = (evt) => parseModelData(evt.target.result, 'obj');
     } else {
       reader.readAsArrayBuffer(file);
-      reader.onload = (event) => processLoadedModelData(event.target.result, ext, file.name);
+      reader.onload = (evt) => parseModelData(evt.target.result, ext);
     }
   }
   fileUploader.value = '';
 });
 
-function processLoadedModelData(data, extension, name) {
+function parseModelData(data, extension) {
   if (extension === 'glb' || extension === 'gltf') {
-    const loader = new THREE.GLTFLoader();
-    loader.parse(data, '', (gltf) => {
-      const model = gltf.scene;
-      model.scale.set(1, 1, 1);
-      registerAndSelectObject(model);
-    }, (err) => alert("Error procesando GLTF/GLB"));
+    new THREE.GLTFLoader().parse(data, '', (gltf) => registerObject(gltf.scene), () => alert("Error cargando GLTF"));
   } else if (extension === 'obj') {
-    const loader = new THREE.OBJLoader();
-    const obj = loader.parse(data);
-    registerAndSelectObject(obj);
+    const obj = new THREE.OBJLoader().parse(data);
+    registerObject(obj);
   } else if (extension === 'fbx') {
-    const loader = new THREE.FBXLoader();
-    const obj = loader.parse(data, '');
-    registerAndSelectObject(obj);
+    const obj = new THREE.FBXLoader().parse(data, '');
+    registerObject(obj);
   }
 }
 
+// Bucle de renderizado
 function animate() {
   requestAnimationFrame(animate);
   orbitControls.update();
-  renderer.render(scene, activeCamera);
+  renderer.render(scene, camera);
 }
 animate();
 
 window.addEventListener('resize', () => {
-  mainCamera.aspect = window.innerWidth / window.innerHeight;
-  mainCamera.updateProjectionMatrix();
-  altCamera.aspect = window.innerWidth / window.innerHeight;
-  altCamera.updateProjectionMatrix();
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
