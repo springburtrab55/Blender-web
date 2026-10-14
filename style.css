@@ -8,7 +8,7 @@ body, html {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #1e1e1e;
+  background-color: #181818;
   font-family: Arial, sans-serif;
 }
 
@@ -22,59 +22,106 @@ body, html {
   position: absolute;
   top: 10px;
   left: 10px;
-  color: #cccccc;
-  font-size: 12px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 5px 10px;
+  color: #a0a0a0;
+  font-size: 11px;
+  background: rgba(20, 20, 20, 0.7);
+  padding: 6px 10px;
   border-radius: 4px;
   pointer-events: none;
   z-index: 10;
+  border: 1px solid #333;
 }
 
+/* Panel Flotante con altura controlada y barra de desplazamiento propia */
 #toolbar {
   position: absolute;
-  top: 50px;
+  top: 45px;
   left: 10px;
-  background: rgba(35, 35, 35, 0.9);
+  background: rgba(32, 32, 32, 0.95);
   border: 1px solid #444;
   padding: 12px;
   border-radius: 8px;
+  width: 250px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
   z-index: 20;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.6);
 }
 
-#toolbar h3 {
-  color: #bbb;
-  font-size: 13px;
-  margin-bottom: 2px;
+.section-title {
+  color: #d0d0d0;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+}
+
+.button-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 #toolbar button {
-  background: #333;
-  color: #ddd;
-  border: 1px solid #555;
-  padding: 8px 12px;
+  flex: 1;
+  background: #2c2c2c;
+  color: #e0e0e0;
+  border: 1px solid #484848;
+  padding: 8px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
-  text-align: left;
-  transition: background 0.2s;
+  font-size: 11px;
+  text-align: center;
+  transition: all 0.2s ease;
 }
 
 #toolbar button:hover {
   background: #db7100;
   color: #fff;
-  border-color: #db7100;
+  border-color: #f3861a;
+}
+
+#toolbar button.active-mode {
+  background: #db7100;
+  color: #fff;
+  border-color: #ff9124;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #3a3a3a;
+  margin: 6px 0;
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ccc;
+  font-size: 11px;
 }
 
 #color-picker {
-  width: 100%;
-  height: 32px;
-  border: none;
+  width: 60px;
+  height: 26px;
+  border: 1px solid #555;
   border-radius: 4px;
   cursor: pointer;
   background: none;
+}
+
+.danger-btn {
+  background-color: #8a2b2b !important;
+  color: white !important;
+  border-color: #a83a3a !important;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.danger-btn:hover {
+  background-color: #ab3333 !important;
 }
